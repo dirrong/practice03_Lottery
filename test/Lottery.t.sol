@@ -35,20 +35,20 @@ contract LotteryTest is Test {
         lottery.buy{value: 0.1 ether + 1}(0);
     }
 
-    function testNoDuplicate() public {
+    function testNoDuplicate() public { // 한 사람이 중복으로 buy 불가능
         lottery.buy{value: 0.1 ether}(0);
         vm.expectRevert();
         lottery.buy{value: 0.1 ether}(0);
     }
 
-    function testSellPhaseFullLength() public {
+    function testSellPhaseFullLength() public { // 24시간이 지나기 전에는 로또 살 수 있음
         lottery.buy{value: 0.1 ether}(0);
         vm.warp(block.timestamp + 24 hours - 1);
         vm.prank(address(1));
         lottery.buy{value: 0.1 ether}(0);
     }
 
-    function testNoBuyAfterPhaseEnd() public {
+    function testNoBuyAfterPhaseEnd() public { // 장이 끝나면 더이상 살 수 없음
         lottery.buy{value: 0.1 ether}(0);
         vm.warp(block.timestamp + 24 hours);
         vm.expectRevert();
@@ -56,27 +56,29 @@ contract LotteryTest is Test {
         lottery.buy{value: 0.1 ether}(0);
     }
 
-    function testNoDrawDuringSellPhase() public {
+    function testNoDrawDuringSellPhase() public { // 장이 열리는 동안에는 draw 불가능
         lottery.buy{value: 0.1 ether}(0);
         vm.warp(block.timestamp + 24 hours - 1);
         vm.expectRevert();
         lottery.draw();
     }
 
-    function testNoClaimDuringSellPhase() public {
+    function testNoClaimDuringSellPhase() public { // 장이 열리는 동안에는 claim 불가능
         lottery.buy{value: 0.1 ether}(0);
         vm.warp(block.timestamp + 24 hours - 1);
         vm.expectRevert();
         lottery.claim();
     }
 
-    function testDraw() public {
+    function testDraw() public { // buy하고 24시간 후에 draw 가능
         lottery.buy{value: 0.1 ether}(0);
         vm.warp(block.timestamp + 24 hours);
         lottery.draw();
     }
 
-    function getNextWinningNumber() private returns (uint16) {
+    function getNextWinningNumber() private returns (uint16) { 
+        // snapshot: 블록체인 상태 확인 후 생성된 식별자 반환
+        // revertTo: 블록체인의 상태를 주어진 상태로 되돌림
         uint256 snapshotId = vm.snapshot();
         lottery.buy{value: 0.1 ether}(0);
         vm.warp(block.timestamp + 24 hours);
